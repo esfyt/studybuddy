@@ -11,45 +11,54 @@ const SUBJECTS = [
     "Hindi", "Computer Science"
 ];
 
-function json(data, status = 200) {
-    return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-        }
+function readBody(req) {
+    return new Promise((resolve, reject) => {
+        let data = "";
+        req.on("data", chunk => (data += chunk));
+        req.on("end", () => {
+            try { resolve(JSON.parse(data || "{}")); }
+            catch (e) { reject(e); }
+        });
+        req.on("error", reject);
     });
 }
 
-export default async function handler(request) {
-    if (request.method === "OPTIONS") {
-        return new Response(null, {
-            status: 204,
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type"
-            }
+function sendJson(res, data, status = 200) {
+    const body = JSON.stringify(data);
+    res.writeHead(status, {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+    });
+    res.end(body);
+}
+
+export default async function handler(req, res) {
+    if (req.method === "OPTIONS") {
+        res.writeHead(204, {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
         });
+        return res.end();
     }
 
-    if (request.method !== "POST") {
-        return json({ error: "Method not allowed" }, 405);
+    if (req.method !== "POST") {
+        return sendJson(res, { error: "Method not allowed" }, 405);
     }
 
     try {
-        const body = await request.json();
+        const body = await readBody(req);
         const question = String(body.question || "").trim();
 
         if (question.length < 5) {
-            return json({ error: "question is too short to classify" }, 400);
+            return sendJson(res, { error: "question is too short to classify" }, 400);
         }
 
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            return json({ error: "GROQ_API_KEY is not set on the server" }, 500);
+            return sendJson(res, { error: "GROQ_API_KEY is not set on the server" }, 500);
         }
 
         const subjectList = SUBJECTS.map(s => `- ${s}`).join("\n");
@@ -100,9 +109,9 @@ Rules:
             if (match) subject = match;
         }
 
-        return json({ subject });
+        return sendJson(res, { subject });
     } catch (error) {
         console.error("Detect subject API error:", error);
-        return json({ error: error.message || "Subject detection failed" }, 502);
+        return sendJson(res, { error: error.message || "Subject detection failed" }, 502);
     }
 }
