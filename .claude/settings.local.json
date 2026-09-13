@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node check_balance.js)",
+      "Bash(node -e \"try{require\\('acorn'\\);console.log\\('acorn available'\\)}catch\\(e\\){console.log\\('no acorn'\\)}\")",
+      "Bash(node --check script.js)",
+      "Bash(grep -oE '\\\\$\\\\\\(\"[A-Za-z0-9_-]+\"\\\\\\)' script.js)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4173/)",
+      "Bash(npx http-server *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4173/index.html)",
+      "Bash(curl -s http://localhost:4173/)",
+      "Bash(curl -s http://localhost:4173/script.js)",
+      "Bash(curl -sI http://localhost:4173/)",
+      "Bash(mkdir -p css js assets api)",
+      "Bash(mv style.css css/style.css)",
+      "Bash(node --input-type=module --check api/evaluate.js)",
+      "Bash(node --input-type=module --check api/generate.js)",
+      "Bash(node --input-type=module --check api/detect-subject.js)",
+      "Bash(node --check js/core.js)"
+    ]
+  }
+}

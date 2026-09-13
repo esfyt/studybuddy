@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Rachu — AI Learning Assistant</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ================================
+         NAVBAR
+    ================================= -->
+
+    <header class="navbar">
+
+        <div class="logo">
+            Rachu
+        </div>
+
+
+        <nav>
+
+            <a href="#home">
+                Home
+            </a>
+
+            <a href="#cards">
+                My Cards
+            </a>
+
+            <a href="#practice">
+                Practice
+            </a>
+
+            <a href="#progress">
+                Progress
+            </a>
+
+
+            <button
+                id="themeToggle"
+                class="theme-toggle"
+                onclick="toggleTheme()"
+            >
+                🌙
+            </button>
+
+        </nav>
+
+    </header>
+
+
+
+    <!-- ================================
+         MAIN
+    ================================= -->
+
+    <main>
+
+
+        <!-- ================================
+             HERO
+        ================================= -->
+
+        <section
+            id="home"
+            class="hero"
+        >
+
+            <div class="hero-content">
+
+                <p class="eyebrow">
+                    AI-POWERED LEARNING
+                </p>
+
+
+                <h1>
+                    Learn it.<br>
+                    <span>Recall it.</span>
+                </h1>
+
+
+                <p class="hero-text">
+
+                    Rachu helps you remember what you study
+                    by making you actively recall concepts,
+                    speak your answers, and learn from your mistakes.
+
+                </p>
+
+
+                <button
+                    class="primary-btn"
+                    onclick="startPractice()"
+                >
+                    Start Practising
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================
+             CREATE CARDS
+        ================================= -->
+
+        <section
+            id="cards"
+            class="cards-section"
+        >
+
+            <div class="section-heading">
+
+                <p class="eyebrow">
+                    YOUR STUDY CARDS
+                </p>
+
+
+                <h2>
+                    Create your own questions.
+                </h2>
+
+
+                <p class="section-description">
+                    Build your own study cards and let Rachu
+                    help you practise them later.
+                </p>
+
+            </div>
+
+
+
+            <!-- CREATE CARD -->
+
+            <div class="create-card">
+
+
+                <!-- QUESTION -->
+
+                <div class="form-group">
+
+                    <label for="cardQuestion">
+                        Question
+                    </label>
+
+
+                    <textarea
+                        id="cardQuestion"
+                        placeholder="Example: What is photosynthesis?"
+                    ></textarea>
+
+                </div>
+
+
+
+                <!-- EXPECTED ANSWER -->
+
+                <div class="form-group">
+
+                    <label for="cardAnswer">
+                        Expected Answer / Key Points
+                    </label>
+
+
+                    <textarea
+                        id="cardAnswer"
+                        placeholder="Write the correct answer or important points..."
+                    ></textarea>
+
+                </div>
+
+
+
+                <!-- AI GENERATE -->
+
+                <div class="card-actions">
+
+                    <button
+                        class="secondary-btn"
+                        id="generateAnswerBtn"
+                        onclick="generateAnswer()"
+                    >
+                        ✨ Generate Answer with Rachu
+                    </button>
+
+
+                    <span class="or-text">
+                        or
+                    </span>
+
+
+                    <button
+                        class="secondary-btn"
+                        onclick="writeAnswerManually()"
+                    >
+                        ✍️ I'll Write the Answer Myself
+                    </button>
+
+                </div>
+
+
+
+                <p class="helper-text">
+
+                    Rachu will evaluate the student's answer
+                    against these points during practice.
+
+                </p>
+
+
+
+                <!-- SAVE -->
+
+                <button
+                    class="primary-btn save-card-btn"
+                    onclick="saveCard()"
+                >
+                    💾 Save Study Card
+                </button>
+
+            </div>
+
+
+
+            <!-- ================================
+                 MY SAVED CARDS
+            ================================= -->
+
+            <div class="saved-cards-container">
+
+
+                <div class="saved-cards-header">
+
+                    <div>
+
+                        <p class="question-label">
+                            YOUR LIBRARY
+                        </p>
+
+                        <h3>
+                            My Cards
+                        </h3>
+
+                    </div>
+
+
+                    <span id="cardCount">
+                        0 cards
+                    </span>
+
+                </div>
+
+
+
+                <div id="cardsList">
+
+                    <p class="empty-state">
+
+                        No cards yet.
+                        Create your first study card!
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================
+             PRACTICE
+        ================================= -->
+
+        <section
+            id="practice"
+            class="practice-section"
+        >
+
+            <div class="section-heading">
+
+                <p class="eyebrow">
+                    ACTIVE RECALL
+                </p>
+
+
+                <h2>
+                    Let's see what you remember.
+                </h2>
+
+
+                <p class="section-description">
+                    Answer from memory. Rachu will check
+                    what you got right and what you missed.
+                </p>
+
+            </div>
+
+
+
+            <!-- QUESTION CARD -->
+
+            <div class="question-card">
+
+
+                <p class="question-label">
+                    QUESTION
+                </p>
+
+
+                <h3 id="question">
+                    Create a study card to start practising.
+                </h3>
+
+
+
+                <!-- ANSWER AREA -->
+
+                <div class="answer-area">
+
+
+                    <textarea
+                        id="answerInput"
+                        placeholder="Type your answer here..."
+                    ></textarea>
+
+
+
+                    <div class="answer-actions">
+
+
+                        <button
+                            class="voice-btn"
+                            onclick="startVoice()"
+                        >
+                            🎙️ Speak
+                        </button>
+
+
+                        <button
+                            class="check-btn"
+                            onclick="checkAnswer()"
+                        >
+                            Check Answer
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ================================
+                 RESULT CARD
+            ================================= -->
+
+            <div
+                id="result"
+                class="result-card hidden"
+            >
+
+
+                <!-- SCORE -->
+
+                <div class="score">
+
+                    <span id="score">
+                        0
+                    </span>%
+
+                </div>
+
+
+
+                <!-- STATUS -->
+
+                <h3 id="resultStatus">
+                    Result
+                </h3>
+
+
+
+                <!-- FEEDBACK -->
+
+                <p id="feedback">
+                    Your evaluation will appear here.
+                </p>
+
+
+
+                <!-- FEEDBACK GRID -->
+
+                <div class="feedback-grid">
+
+
+                    <!-- CORRECT -->
+
+                    <div class="feedback-box">
+
+                        <h4>
+                            ✓ Correct Points
+                        </h4>
+
+
+                        <ul id="correctPoints">
+                        </ul>
+
+                    </div>
+
+
+
+                    <!-- MISSED -->
+
+                    <div class="feedback-box">
+
+                        <h4>
+                            ! Missed Points
+                        </h4>
+
+
+                        <ul id="missedPoints">
+                        </ul>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- MEMORY TRICK -->
+
+                <div class="memory-box">
+
+                    <p class="memory-label">
+                        MEMORY TRICK
+                    </p>
+
+
+                    <p id="memoryTrick">
+                        Your memory trick will appear here.
+                    </p>
+
+                </div>
+
+
+
+                <!-- NEXT QUESTION -->
+
+                <button
+                    class="primary-btn"
+                    onclick="nextQuestion()"
+                >
+                    Next Question →
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================
+             PROGRESS
+        ================================= -->
+
+        <section
+            id="progress"
+            class="progress-section"
+        >
+
+            <div class="section-heading">
+
+                <p class="eyebrow">
+                    YOUR JOURNEY
+                </p>
+
+
+                <h2>
+                    Keep getting better.
+                </h2>
+
+            </div>
+
+
+
+            <div class="stats-grid">
+
+
+                <!-- QUESTIONS -->
+
+                <div class="stat-card">
+
+                    <span id="questionsAnswered">
+                        0
+                    </span>
+
+
+                    <p>
+                        Questions Answered
+                    </p>
+
+                </div>
+
+
+
+                <!-- AVERAGE -->
+
+                <div class="stat-card">
+
+                    <span id="averageScore">
+                        0%
+                    </span>
+
+
+                    <p>
+                        Average Score
+                    </p>
+
+                </div>
+
+
+
+                <!-- STREAK -->
+
+                <div class="stat-card">
+
+                    <span id="streak">
+                        0
+                    </span>
+
+
+                    <p>
+                        Day Streak
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ================================
+         FOOTER
+    ================================= -->
+
+    <footer>
+
+        <p>
+            Made with ❤️ for better learning.
+        </p>
+
+
+        <p>
+            © 2026 Rachu, Inc. All rights reserved.
+        </p>
+
+    </footer>
+
+
+
+    <!-- ================================
+         JAVASCRIPT
+    ================================= -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

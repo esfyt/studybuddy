@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Practice active recall — answer from memory and let Buddy check you.">
+    <title>Practice — Study Buddy 🎯</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="init()">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div id="toastContainer"></div>
+    <canvas id="confetti"></canvas>
+
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- PRACTICE -->
+        <section id="practice" class="practice-section">
+
+            <div class="section-heading reveal">
+                <p class="eyebrow">🧠 ACTIVE RECALL</p>
+                <h2>Let's see what <span class="grad">you remember!</span></h2>
+                <p class="section-description">
+                    Answer from memory. Your buddy will check what you got right and what you missed.
+                </p>
+            </div>
+
+            <div class="question-card reveal">
+                <p class="question-label">QUESTION</p>
+                <div class="chip-row" id="practiceChips"></div>
+                <h3 id="question">Create a study card to start practising.</h3>
+
+                <div class="answer-area">
+                    <textarea id="answerInput" placeholder="Type your answer here..."></textarea>
+                    <div class="answer-actions">
+                        <button class="voice-btn" id="voiceBtn" onclick="startVoice('answerInput', 'voiceBtn')">🎙️ Speak</button>
+                        <button class="check-btn" onclick="checkAnswer()">Check Answer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULT -->
+            <div id="result" class="result-card hidden">
+                <div class="score-wrap">
+                    <div class="score-ring" id="scoreRing">
+                        <svg viewBox="0 0 96 96">
+                            <circle class="ring-track" cx="48" cy="48" r="40"></circle>
+                            <circle class="ring-fill" id="ringFill" cx="48" cy="48" r="40"></circle>
+                            <text class="ring-num" id="score" x="48" y="53" text-anchor="middle" dominant-baseline="middle">0</text>
+                            <text class="ring-pct" x="48" y="72" text-anchor="middle" dominant-baseline="middle">% score</text>
+                        </svg>
+                    </div>
+                    <div class="result-header">
+                        <h3 id="resultStatus">Result</h3>
+                        <p id="feedback">Your evaluation will appear here.</p>
+                        <span class="xp-line" id="xpGained">⭐ +0 XP</span>
+                    </div>
+                </div>
+
+                <div class="feedback-grid">
+                    <div class="feedback-box good">
+                        <h4>✓ Correct Points</h4>
+                        <ul id="correctPoints"></ul>
+                    </div>
+                    <div class="feedback-box missed">
+                        <h4>! Missed Points</h4>
+                        <ul id="missedPoints"></ul>
+                    </div>
+                </div>
+
+                <div class="memory-box">
+                    <p class="memory-label">🧠 MEMORY TRICK</p>
+                    <p id="memoryTrick">Your memory trick will appear here.</p>
+                </div>
+
+                <div class="badge-row" id="newBadges"></div>
+
+                <button class="primary-btn" onclick="nextQuestion()">Next Question →</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+        <p>© 2026 Study Buddy. All rights reserved.</p>
+    </footer>
+
+    <nav id="bottomNav">
+        <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" class="active" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/practice.js"></script>
+</body>
+
+</html>

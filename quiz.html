@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rapid-fire quiz — 5 questions, instant results, bonus XP.">
+    <title>Quick Quiz — Study Buddy ⚡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="init()">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div id="toastContainer"></div>
+    <canvas id="confetti"></canvas>
+
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- QUICK QUIZ -->
+        <section id="quiz" class="quiz-section">
+
+            <div class="section-heading reveal">
+                <p class="eyebrow">⚡ QUICK QUIZ</p>
+                <h2>Rapid-fire <span class="grad">brain boost!</span></h2>
+                <p class="section-description">
+                    5 questions, no fear! Rate yourself with Got it / Not yet.
+                    Works even without internet. 🚀
+                </p>
+            </div>
+
+            <!-- QUIZ START -->
+            <div class="quiz-card reveal" id="quizStart">
+                <span class="big-emoji">⚡</span>
+                <h3>Ready for a challenge?</h3>
+                <p class="quiz-intro">
+                    5 random cards. When you reveal the answer, honestly tap
+                    <strong>"Got it!"</strong> or <strong>"Not yet"</strong>.
+                    Earn bonus XP!
+                </p>
+                <div class="quiz-controls">
+                    <button class="primary-btn gold" onclick="startQuiz()">🚀 Start Quiz</button>
+                </div>
+            </div>
+
+            <!-- QUIZ ACTIVE -->
+            <div class="quiz-card hidden" id="quizActive">
+                <div class="quiz-dots" id="quizDots"></div>
+                <p class="quiz-q-num" id="quizQNum">Question 1 / 5</p>
+                <div class="chip-row quiz-chips" id="quizChips"></div>
+                <h3 class="quiz-question" id="quizQuestion">Loading...</h3>
+
+                <div class="quiz-answer-area">
+                    <textarea id="quizAnswer" placeholder="Try answering on your own first... then reveal! 🤔"></textarea>
+                    <div class="answer-actions">
+                        <button class="voice-btn" id="quizVoiceBtn" onclick="startVoice('quizAnswer', 'quizVoiceBtn')">🎙️ Speak</button>
+                        <button class="check-btn" onclick="quizReveal()">👁️ Reveal Answer</button>
+                    </div>
+                </div>
+
+                <div class="reveal-area" id="quizRevealArea">
+                    <p class="reveal-label">📝 CORRECT ANSWER</p>
+                    <p id="quizExpected"></p>
+                </div>
+
+                <div class="quiz-controls">
+                    <button class="primary-btn mint" onclick="quizGrade(true)">✅ Got it!</button>
+                    <button class="primary-btn" style="background: linear-gradient(135deg,#FF6B6B,#FF9F45)" onclick="quizGrade(false)">❌ Not yet</button>
+                </div>
+            </div>
+
+            <!-- QUIZ RESULT -->
+            <div class="quiz-card hidden" id="quizResult">
+                <div class="quiz-score-ring" id="quizScoreRing">
+                    <svg viewBox="0 0 130 130">
+                        <circle class="ring-track" cx="65" cy="65" r="55"></circle>
+                        <circle class="ring-fill" id="quizRingFill" cx="65" cy="65" r="55"></circle>
+                        <text class="ring-num" id="quizScore" x="65" y="70" text-anchor="middle" dominant-baseline="middle">0</text>
+                        <text class="ring-pct" x="65" y="94" text-anchor="middle" dominant-baseline="middle">correct</text>
+                    </svg>
+                </div>
+                <h3 id="quizVerdict">Great job! 🎉</h3>
+                <p class="quiz-intro" id="quizNote"></p>
+                <div class="quiz-meta">
+                    <span class="mini-stat">⏱️ <span id="quizTime">0s</span></span>
+                    <span class="mini-stat">⭐ +<span id="quizXp">0</span> XP</span>
+                    <span class="mini-stat">🏆 Best: <span id="quizBest">0/5</span></span>
+                </div>
+                <div class="badge-row" style="justify-content:center; margin-bottom:18px" id="quizNewBadges"></div>
+                <div class="quiz-controls">
+                    <button class="primary-btn gold" onclick="startQuiz()">🔁 Play Again</button>
+                    <button class="secondary-btn" onclick="scrollToPractice()">🎮 Practice More</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+        <p>© 2026 Study Buddy. All rights reserved.</p>
+    </footer>
+
+    <nav id="bottomNav">
+        <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" class="active" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/quiz.js"></script>
+</body>
+
+</html>

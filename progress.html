@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your study journey — level, daily goal, stats, badges.">
+    <title>Progress — Study Buddy 📈</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="init()">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div id="toastContainer"></div>
+    <canvas id="confetti"></canvas>
+
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- PROGRESS -->
+        <section id="progress" class="progress-section">
+
+            <div class="section-heading reveal">
+                <p class="eyebrow">📈 YOUR JOURNEY</p>
+                <h2>A little better <span class="grad">every day!</span></h2>
+                <p class="section-description">
+                    The story of your effort. Keep going and watch yourself fly! 🚀
+                </p>
+            </div>
+
+            <div class="progress-grid reveal">
+
+                <!-- LEVEL CARD -->
+                <div class="level-card">
+                    <div class="level-emoji" id="levelEmoji">🐣</div>
+                    <div class="level-info">
+                        <div class="level-name" id="levelName">Rising Star</div>
+                        <div class="level-sub">Level <span id="levelNum">1</span></div>
+                        <div class="xp-bar"><div class="xp-fill" id="levelXpBar"></div></div>
+                        <div class="xp-bar-note">
+                            <span id="levelXpFrom">0</span>
+                            <span id="levelXpTo">100 XP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DAILY GOAL CARD -->
+                <div class="goal-card">
+                    <div class="card-title">🎯 Today's Goal</div>
+                    <div class="goal-row">
+                        <div class="goal-ring-wrap">
+                            <svg viewBox="0 0 96 96">
+                                <circle class="goal-ring-track" cx="48" cy="48" r="40"></circle>
+                                <circle class="goal-ring-fill" id="goalRing" cx="48" cy="48" r="40"></circle>
+                            </svg>
+                            <div class="goal-ring-center">
+                                <span class="num" id="goalNum">0</span>
+                                <span class="cap">/ 10</span>
+                            </div>
+                        </div>
+                        <div class="goal-text">
+                            <span id="goalText">Practice <strong>10 questions</strong> today. One by one, anything is possible! 💪</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="stats-grid" style="grid-column:1/-1">
+                    <div class="stat-card">
+                        <span class="stat-emoji">❓</span>
+                        <span class="big" id="questionsAnswered">0</span>
+                        <p>Questions Answered</p>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-emoji">📊</span>
+                        <span class="big" id="averageScore">0%</span>
+                        <p>Average Score</p>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-emoji">🔥</span>
+                        <span class="big" id="streak">0</span>
+                        <p>Day Streak</p>
+                    </div>
+                </div>
+
+                <!-- WEEKLY CHART -->
+                <div class="chart-card">
+                    <div class="card-title">📅 Past 7 Days</div>
+                    <div class="chart-bars" id="weeklyChart"></div>
+                </div>
+
+                <!-- BADGES -->
+                <div class="badges-card">
+                    <div class="card-title">🏅 Badges</div>
+                    <div class="badges-grid" id="badgesGrid"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+        <p>© 2026 Study Buddy. All rights reserved.</p>
+    </footer>
+
+    <nav id="bottomNav">
+        <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" class="active" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/progress.js"></script>
+</body>
+
+</html>

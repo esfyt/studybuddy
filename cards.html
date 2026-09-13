@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your study cards — Buddy auto-detects the subject for you.">
+    <title>My Cards — Study Buddy 🎴</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="init()">
+
+    <!-- Background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div id="toastContainer"></div>
+    <canvas id="confetti"></canvas>
+
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- CREATE + MY CARDS -->
+        <section id="cards" class="cards-section">
+
+            <div class="section-heading reveal">
+                <p class="eyebrow">📚 YOUR STUDY CARDS</p>
+                <h2>Your questions, <span class="grad">your cards!</span></h2>
+                <p class="section-description">
+                    Choose your board, class and standard, then build study cards.
+                    Buddy picks the subject automatically as you type. ✨
+                </p>
+            </div>
+
+            <!-- CREATE CARD -->
+            <div class="create-card reveal">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cardBoard">📋 Board</label>
+                        <select id="cardBoard">
+                            <option value="CBSE">CBSE</option>
+                            <option value="ICSE">ICSE</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardClass">🏫 Class</label>
+                        <select id="cardClass">
+                            <option value="6">Class 6</option>
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                            <option value="11">Class 11</option>
+                            <option value="12">Class 12</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardStandard">🎯 Standard</label>
+                        <select id="cardStandard">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardSubject">📚 Subject <span class="auto-tag">✨ auto</span></label>
+                        <input type="text" id="cardSubject" list="subjectList" placeholder="Auto-detected as you type">
+                        <datalist id="subjectList">
+                            <option value="📐 Mathematics"></option>
+                            <option value="🔬 Science"></option>
+                            <option value="⚡ Physics"></option>
+                            <option value="🧪 Chemistry"></option>
+                            <option value="🧬 Biology"></option>
+                            <option value="🏛️ History"></option>
+                            <option value="🌍 Geography"></option>
+                            <option value="🤝 Civics"></option>
+                            <option value="💰 Economics"></option>
+                            <option value="📖 English"></option>
+                            <option value="🪔 Hindi"></option>
+                            <option value="💻 Computer Science"></option>
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardQuestion">❓ Question</label>
+                    <textarea id="cardQuestion" placeholder="Example: What is photosynthesis?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardAnswer">💡 Expected Answer / Key Points</label>
+                    <textarea id="cardAnswer" placeholder="Write the correct answer or important points..."></textarea>
+                </div>
+
+                <div class="card-actions">
+                    <button class="secondary-btn" id="generateAnswerBtn" onclick="generateAnswer()">
+                        ✨ Generate Answer with AI
+                    </button>
+                    <span class="or-text">or</span>
+                    <button class="secondary-btn manual" onclick="writeAnswerManually()">
+                        ✍️ I'll Write the Answer Myself
+                    </button>
+                </div>
+
+                <p class="helper-text">
+                    Your answer will be evaluated against these points during practice,
+                    matched to your board, class and standard.
+                </p>
+
+                <button class="primary-btn save-card-btn" onclick="saveCard()">💾 Save Study Card</button>
+            </div>
+
+            <!-- MY CARDS -->
+            <div class="saved-cards-container reveal">
+
+                <div class="saved-cards-header">
+                    <div>
+                        <p class="question-label">📚 YOUR LIBRARY</p>
+                        <h3>My Cards</h3>
+                    </div>
+                    <span id="cardCount">0 cards</span>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="filterSubject">📚 Subject</label>
+                        <select id="filterSubject">
+                            <option value="">All Subjects</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterBoard">📋 Board</label>
+                        <select id="filterBoard">
+                            <option value="">All Boards</option>
+                            <option value="CBSE">CBSE</option>
+                            <option value="ICSE">ICSE</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterClass">🏫 Class</label>
+                        <select id="filterClass">
+                            <option value="">All Classes</option>
+                            <option value="6">Class 6</option>
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                            <option value="11">Class 11</option>
+                            <option value="12">Class 12</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="cardsList">
+                    <div class="empty-state">
+                        <span class="big-emoji">🦉</span>
+                        <span class="empty-title">No cards yet!</span>
+                        <span>Create your first study card above. 🌱</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+        <p>© 2026 Study Buddy. All rights reserved.</p>
+    </footer>
+
+    <nav id="bottomNav">
+        <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" class="active" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/cards.js"></script>
+</body>
+
+</html>

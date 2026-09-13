@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Buddy — your fun AI learning buddy. Create study cards, practice active recall and grow your streak every day!">
+    <title>Study Buddy — 🦉 Your Fun AI Study Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="init()">
+
+    <!-- Background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer"></div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti"></canvas>
+
+    <!-- Confirm modal -->
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- HERO -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <div class="mascot-wrap">
+                    <div class="mascot" id="mascot">
+                        <svg class="mascot-svg" id="mascotSvg" viewBox="0 0 100 100" aria-hidden="true">
+                            <g class="mascot-body">
+                                <ellipse cx="50" cy="58" rx="34" ry="30" fill="#7C3AED"/>
+                                <ellipse cx="50" cy="60" rx="22" ry="18" fill="#FFF6EC"/>
+                                <circle cx="50" cy="46" r="17" fill="#7C3AED"/>
+                                <circle cx="50" cy="48" r="11" fill="#fff"/>
+                                <circle cx="42" cy="42" r="4.5" fill="#2A1B4A"/>
+                                <circle cx="58" cy="42" r="4.5" fill="#2A1B4A"/>
+                                <path d="M46 52 Q50 55 54 52" stroke="#2A1B4A" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M14 36 Q4 44 8 54" stroke="#FF6FB5" stroke-width="5" fill="none" stroke-linecap="round"/>
+                                <path d="M86 36 Q96 44 92 54" stroke="#FF6FB5" stroke-width="5" fill="none" stroke-linecap="round"/>
+                                <ellipse cx="50" cy="74" rx="16" ry="6" fill="#FF9F45"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="speech-bubble" id="mascotBubble">Hello, Champion! 🌟 Ready to learn?</div>
+                </div>
+
+                <p class="eyebrow">🎓 AI-POWERED LEARNING</p>
+                <h1>Learn it.<br><span class="grad">Love it. Recall it!</span> 🎉</h1>
+                <p class="hero-text">
+                    Pick your board, class and subject, make your own study cards,
+                    then practise by recalling answers from memory. Small steps,
+                    big champion! 🚀
+                </p>
+
+                <div class="hero-actions">
+                    <a href="practice.html" class="primary-btn">🎮 Start Practising</a>
+                    <a href="quiz.html" class="primary-btn gold">⚡ Quick Quiz</a>
+                </div>
+
+                <div class="hero-strip">
+                    <span class="hero-chip"><span class="dot"></span>Today's goal: <strong id="heroGoalCount">0/10</strong></span>
+                    <span class="hero-chip">🔥 Streak: <strong id="heroStreakCount">0</strong></span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+        <p>© 2026 Study Buddy. All rights reserved.</p>
+    </footer>
+
+    <!-- Mobile bottom nav -->
+    <nav id="bottomNav">
+        <a href="index.html" class="active" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/voice.js"></script>
+    <script src="js/home.js"></script>
+</body>
+
+</html>

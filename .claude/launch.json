@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "study-buddy-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", ".", "-p", "4173", "-c", "0", "--cache=0"],
+      "port": 4173
+    }
+  ]
+}
