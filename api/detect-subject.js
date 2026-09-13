@@ -11,34 +11,45 @@ const SUBJECTS = [
     "Hindi", "Computer Science"
 ];
 
-function corsHeaders() {
-    return {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-    };
+function json(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        }
+    });
 }
 
-export default async function handler(req, res) {
-    if (req.method === "OPTIONS") {
-        return res.status(200).set(corsHeaders()).json({});
+export default async function handler(request) {
+    if (request.method === "OPTIONS") {
+        return new Response(null, {
+            status: 204,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        });
     }
 
-    if (req.method !== "POST") {
-        return res.status(405).set(corsHeaders()).json({ error: "Method not allowed" });
+    if (request.method !== "POST") {
+        return json({ error: "Method not allowed" }, 405);
     }
 
     try {
-        const body = req.body || {};
+        const body = await request.json();
         const question = String(body.question || "").trim();
 
         if (question.length < 5) {
-            return res.status(400).set(corsHeaders()).json({ error: "question is too short to classify" });
+            return json({ error: "question is too short to classify" }, 400);
         }
 
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            return res.status(500).set(corsHeaders()).json({ error: "GROQ_API_KEY is not set on the server" });
+            return json({ error: "GROQ_API_KEY is not set on the server" }, 500);
         }
 
         const subjectList = SUBJECTS.map(s => `- ${s}`).join("\n");
@@ -89,11 +100,9 @@ Rules:
             if (match) subject = match;
         }
 
-        return res.status(200).set(corsHeaders()).json({ subject });
+        return json({ subject });
     } catch (error) {
         console.error("Detect subject API error:", error);
-        return res.status(502).set(corsHeaders()).json({
-            error: error.message || "Subject detection failed"
-        });
+        return json({ error: error.message || "Subject detection failed" }, 502);
     }
 }

@@ -17,36 +17,47 @@ function buildContextNote(context) {
         "\nMatch the depth and difficulty of your answer to this context.";
 }
 
-function corsHeaders() {
-    return {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
-    };
+function json(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        }
+    });
 }
 
-export default async function handler(req, res) {
-    if (req.method === "OPTIONS") {
-        return res.status(200).set(corsHeaders()).json({});
+export default async function handler(request) {
+    if (request.method === "OPTIONS") {
+        return new Response(null, {
+            status: 204,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        });
     }
 
-    if (req.method !== "POST") {
-        return res.status(405).set(corsHeaders()).json({ error: "Method not allowed" });
+    if (request.method !== "POST") {
+        return json({ error: "Method not allowed" }, 405);
     }
 
     try {
-        const body = req.body || {};
+        const body = await request.json();
         const question = String(body.question || "").trim();
         const expected = String(body.expected || "").trim();
         const answer = String(body.answer || "").trim();
 
         if (!question || !expected || !answer) {
-            return res.status(400).set(corsHeaders()).json({ error: "question, expected and answer are required" });
+            return json({ error: "question, expected and answer are required" }, 400);
         }
 
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
-            return res.status(500).set(corsHeaders()).json({ error: "GROQ_API_KEY is not set on the server" });
+            return json({ error: "GROQ_API_KEY is not set on the server" }, 500);
         }
 
         const contextNote = buildContextNote({
@@ -56,12 +67,18 @@ export default async function handler(req, res) {
             subject: body.subject
         });
 
-        const context = {
-            model: "openai/gpt-oss-20b",
-            messages: [
-                {
-                    role: "system",
-                    content: `You are Buddy, a friendly AI study owl that evaluates a school student's answer against the expected answer.
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "openai/gpt-oss-20b",
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are Buddy, a friendly AI study owl that evaluates a school student's answer against the expected answer.
 
 Be fair, educational, warm and encouraging.
 
@@ -91,41 +108,33 @@ Return ONLY valid JSON in this exact structure:
     "correct_points": ["string"],
     "missed_points": ["string"],
     "memory_trick": "string"}`
-                },
-                {
-                    role: "user",
-                    content: `Question:\n${question}\n\nExpected Answer:\n${expected}\n\nStudent Answer:\n${answer}`
-                }
-            ],
-            response_format: {
-                type: "json_schema",
-                json_schema: {
-                    name: "answer_evaluation",
-                    strict: true,
-                    schema: {
-                        type: "object",
-                        properties: {
-                            score: { type: "integer", minimum: 0, maximum: 100 },
-                            status: { type: "string" },
-                            feedback: { type: "string" },
-                            correct_points: { type: "array", items: { type: "string" } },
-                            missed_points: { type: "array", items: { type: "string" } },
-                            memory_trick: { type: "string" }
-                        },
-                        required: ["score", "status", "feedback", "correct_points", "missed_points", "memory_trick"],
-                        additionalProperties: false
+                    },
+                    {
+                        role: "user",
+                        content: `Question:\n${question}\n\nExpected Answer:\n${expected}\n\nStudent Answer:\n${answer}`
+                    }
+                ],
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: "answer_evaluation",
+                        strict: true,
+                        schema: {
+                            type: "object",
+                            properties: {
+                                score: { type: "integer", minimum: 0, maximum: 100 },
+                                status: { type: "string" },
+                                feedback: { type: "string" },
+                                correct_points: { type: "array", items: { type: "string" } },
+                                missed_points: { type: "array", items: { type: "string" } },
+                                memory_trick: { type: "string" }
+                            },
+                            required: ["score", "status", "feedback", "correct_points", "missed_points", "memory_trick"],
+                            additionalProperties: false
+                        }
                     }
                 }
-            }
-        };
-
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(context)
+            })
         });
 
         if (!groqRes.ok) {
@@ -151,11 +160,9 @@ Return ONLY valid JSON in this exact structure:
         }
         evaluation.score = Math.max(0, Math.min(100, Math.round(evaluation.score)));
 
-        return res.status(200).set(corsHeaders()).json(evaluation);
+        return json(evaluation);
     } catch (error) {
         console.error("Evaluation API error:", error);
-        return res.status(502).set(corsHeaders()).json({
-            error: error.message || "Evaluation failed"
-        });
+        return json({ error: error.message || "Evaluation failed" }, 502);
     }
 }
