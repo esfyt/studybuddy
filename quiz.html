@@ -32,6 +32,9 @@
         </div>
     </div>
 
+    <!-- Skip to content -->
+    <a href="#mainContent" class="skip-link">Skip to main content</a>
+
     <header class="navbar">
         <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
         <nav>
@@ -50,7 +53,7 @@
         </nav>
     </header>
 
-    <main>
+    <main id="mainContent">
 
         <!-- QUICK QUIZ -->
         <section id="quiz" class="quiz-section">
@@ -60,7 +63,7 @@
                 <h2>Rapid-fire <span class="grad">brain boost!</span></h2>
                 <p class="section-description">
                     5 questions, no fear! Rate yourself with Got it / Not yet.
-                    Works even without internet. 🚀
+                    Your cards are saved on your device, so this quiz runs on your own cards. 🚀
                 </p>
             </div>
 
@@ -132,9 +135,25 @@
     </main>
 
     <footer>
-        <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
-        <p>© 2026 Study Buddy. All rights reserved.</p>
+        <div>
+            <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+            <p>© 2026 Study Buddy. All rights reserved.</p>
+        </div>
+        <div class="footer-links">
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms &amp; Conditions</a>
+            <a href="cookies.html">Cookie Policy</a>
+        </div>
     </footer>
+
+    <!-- Cookie consent banner -->
+    <div id="cookieBanner" class="hidden">
+        <div class="cookie-text">
+            🍪 Study Buddy uses <strong>no cookies</strong> — only your browser's local storage to save your cards and progress. By using the app, you agree to our
+            <a href="privacy.html">Privacy Policy</a> and <a href="cookies.html">Cookie Policy</a>.
+        </div>
+        <button id="cookieAccept">Got it ✓</button>
+    </div>
 
     <nav id="bottomNav">
         <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
@@ -147,6 +166,7 @@
     <script src="js/core.js"></script>
     <script src="js/voice.js"></script>
     <script src="js/quiz.js"></script>
+    <script src="js/cookies.js"></script>
 </body>
 
 </html>

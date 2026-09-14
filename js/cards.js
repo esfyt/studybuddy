@@ -111,6 +111,13 @@ function renderCards() {
 // ---------- SAVE / DELETE ----------
 
 function saveCard() {
+    const consent = $("formConsent");
+    if (consent && !consent.checked) {
+        showToast("Please agree to the data policy to save your card. 🙏", "error", "🔒");
+        consent.focus();
+        return;
+    }
+
     const question = $("cardQuestion").value.trim();
     const expectedAnswer = $("cardAnswer").value.trim();
     const meta = getFormMeta();

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Study Buddy Terms and Conditions — the rules for using our app.">
+    <title>Terms &amp; Conditions — Study Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .legal-page {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 60px 5% 40px;
+        }
+        .legal-page h1 {
+            font-size: clamp(30px, 5vw, 44px);
+            margin-bottom: 8px;
+        }
+        .legal-page .legal-updated {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 36px;
+        }
+        .legal-page h2 {
+            font-size: 22px;
+            margin: 32px 0 12px;
+            color: var(--primary);
+        }
+        .legal-page p,
+        .legal-page li {
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .legal-page ul {
+            padding-left: 22px;
+            margin-bottom: 14px;
+        }
+        .legal-page li {
+            margin-bottom: 6px;
+        }
+        .legal-page a {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .legal-page a:hover {
+            color: var(--primary-strong);
+        }
+    </style>
+</head>
+
+<body onload="init()">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div id="toastContainer"></div>
+    <canvas id="confetti"></canvas>
+
+    <div id="modalOverlay" class="hidden">
+        <div class="modal-card" role="dialog" aria-modal="true">
+            <span class="modal-emoji">🦉</span>
+            <h3 id="modalTitle">Are you sure?</h3>
+            <p id="modalText"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeModal()">Cancel ❤️</button>
+                <button class="primary-btn" id="modalConfirmBtn" onclick="confirmModalAction()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skip to content -->
+    <a href="#mainContent" class="skip-link">Skip to main content</a>
+
+    <header class="navbar">
+        <div class="logo"><a href="index.html" style="text-decoration:none;color:inherit">🦉 Study Buddy</a></div>
+        <nav>
+            <div class="nav-links">
+                <a class="nav-link" data-page="home" href="index.html">Home</a>
+                <a class="nav-link" data-page="cards" href="cards.html">My Cards</a>
+                <a class="nav-link" data-page="practice" href="practice.html">Practice</a>
+                <a class="nav-link" data-page="quiz" href="quiz.html">Quick Quiz</a>
+                <a class="nav-link" data-page="progress" href="progress.html">Progress</a>
+            </div>
+            <div class="nav-right">
+                <span class="xp-pill" id="navXp">⭐ 0 XP</span>
+                <button id="soundToggle" class="icon-btn" onclick="toggleSound()" aria-label="Toggle sound">🔇</button>
+                <button id="themeToggle" class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            </div>
+        </nav>
+    </header>
+
+    <main id="mainContent">
+        <div class="legal-page">
+            <h1>Terms &amp; Conditions 📜</h1>
+            <p class="legal-updated">Last updated: 14 September 2026</p>
+
+            <p>Welcome to Study Buddy! These terms and conditions outline the rules for using our website and application. By using Study Buddy, you agree to these terms.</p>
+
+            <h2>1. What Study Buddy Is</h2>
+            <p>Study Buddy is a free, AI-powered study tool that helps school students create study cards, practise active recall, take quizzes, and track their learning progress. It is designed for students in Classes 6–12 following CBSE or ICSE curricula.</p>
+
+            <h2>2. Use of the Service</h2>
+            <ul>
+                <li>Study Buddy is provided free of charge for educational purposes.</li>
+                <li>You may use the app to create, practise, and quiz yourself on study cards.</li>
+                <li>You are responsible for the accuracy of the cards you create.</li>
+                <li>You agree not to use the service for any unlawful or harmful purpose.</li>
+            </ul>
+
+            <h2>3. AI-Generated Content</h2>
+            <ul>
+                <li>Study Buddy uses AI (via the Groq API) to generate answers, evaluate your responses, and detect subjects.</li>
+                <li>AI-generated answers are suggestions and may not always be perfectly accurate. <strong>Always verify important information</strong> with your textbook or teacher.</li>
+                <li>AI evaluations are approximate and intended for learning practice, not formal assessment.</li>
+                <li>We do not guarantee the accuracy, completeness, or reliability of AI-generated content.</li>
+            </ul>
+
+            <h2>4. Your Content</h2>
+            <ul>
+                <li>You retain full ownership of the study cards and answers you create.</li>
+                <li>All your content is stored in your browser's local storage and does not leave your device except when AI features are used.</li>
+                <li>We do not claim any ownership over your content.</li>
+            </ul>
+
+            <h2>5. Intellectual Property</h2>
+            <ul>
+                <li>The Study Buddy app, including its design, code, and branding, is owned by the Study Buddy project.</li>
+                <li>You may not copy, modify, or redistribute the app or its code without permission.</li>
+                <li>The owl mascot and Study Buddy name are trademarks of the project.</li>
+            </ul>
+
+            <h2>6. Limitation of Liability</h2>
+            <ul>
+                <li>Study Buddy is provided "as is" without warranties of any kind.</li>
+                <li>We are not responsible for any academic decisions made based on AI-generated content from the app.</li>
+                <li>We are not liable for any data loss (clearing browser data will remove your cards and progress).</li>
+                <li>We do not guarantee uninterrupted or error-free service.</li>
+            </ul>
+
+            <h2>7. Availability</h2>
+            <p>We aim to keep Study Buddy running reliably, but we may need to update, modify, or temporarily shut down the service at any time without notice. AI features depend on third-party services (Groq) and may occasionally be unavailable.</p>
+
+            <h2>8. Changes to These Terms</h2>
+            <p>We reserve the right to update these terms at any time. Changes will be posted on this page with an updated date. Continued use of Study Buddy after changes constitutes acceptance of the updated terms.</p>
+
+            <h2>9. Governing Law</h2>
+            <p>These terms are governed by the laws of India, without regard to conflict of law principles.</p>
+
+            <h2>10. Contact</h2>
+            <p>If you have questions about these terms, please reach out through the project's <a href="https://github.com/esfyt/studybuddy" target="_blank" rel="noopener noreferrer">GitHub repository</a>.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div>
+            <p><span class="foot-emoji">🦉</span> Made with ❤️ for better learning. Learn and grow!</p>
+            <p>© 2026 Study Buddy. All rights reserved.</p>
+        </div>
+        <div class="footer-links">
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html" aria-current="page">Terms &amp; Conditions</a>
+            <a href="cookies.html">Cookie Policy</a>
+        </div>
+    </footer>
+
+    <!-- Cookie consent banner -->
+    <div id="cookieBanner" class="hidden">
+        <div class="cookie-text">
+            🍪 Study Buddy uses <strong>no cookies</strong> — only your browser's local storage to save your cards and progress. By using the app, you agree to our
+            <a href="privacy.html">Privacy Policy</a> and <a href="cookies.html">Cookie Policy</a>.
+        </div>
+        <button id="cookieAccept">Got it ✓</button>
+    </div>
+
+    <nav id="bottomNav">
+        <a href="index.html" data-nav="home"><span class="nav-emoji">🏠</span>Home</a>
+        <a href="cards.html" data-nav="cards"><span class="nav-emoji">🎴</span>Cards</a>
+        <a href="practice.html" data-nav="practice"><span class="nav-emoji">🎯</span>Practice</a>
+        <a href="quiz.html" data-nav="quiz"><span class="nav-emoji">⚡</span>Quiz</a>
+        <a href="progress.html" data-nav="progress"><span class="nav-emoji">📈</span>Progress</a>
+    </nav>
+
+    <script src="js/core.js"></script>
+    <script src="js/cookies.js"></script>
+    <script>
+        window.init = function () {
+            loadTheme();
+            initSoundButton();
+            updateNavPill();
+        };
+    </script>
+</body>
+
+</html>

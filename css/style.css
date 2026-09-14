@@ -21,15 +21,15 @@ html {
     --border: #F3D4EF;
     --border-strong: #E0B6E6;
     --text: #2A1B4A;
-    --text-muted: #7A5C9E;
+    --text-muted: #5E4080;
     --primary: #7C3AED;
-    --primary-strong: #6D28D9;
+    --primary-strong: #5B21B6;
     --pink: #FF6FB5;
     --orange: #FF9F45;
     --mint: #2FD29B;
     --sky: #3FA9F5;
-    --gold: #FFC93C;
-    --danger: #FF6B6B;
+    --gold: #E8A800;
+    --danger: #E04848;
 
     --grad-main: linear-gradient(135deg, #7C3AED, #FF6FB5);
     --grad-fun: linear-gradient(135deg, #FF9F45, #FF6FB5, #7C3AED);
@@ -38,7 +38,8 @@ html {
 
     --shadow: rgba(124, 58, 237, 0.14);
     --shadow-deep: rgba(124, 58, 237, 0.22);
-    --focus-ring: rgba(124, 58, 237, 0.16);
+    --focus-ring: rgba(124, 58, 237, 0.30);
+    --focus-outline: #5B21B6;
     --hero-glow: rgba(255, 159, 69, 0.28);
     --hero-glow-2: rgba(124, 58, 237, 0.22);
 }
@@ -51,12 +52,13 @@ body.dark-mode {
     --border: #6B4FB0;
     --border-strong: #8568C8;
     --text: #F7EFFF;
-    --text-muted: #B7A3D9;
+    --text-muted: #D5C6EF;
     --primary: #A78BFA;
     --primary-strong: #8B62F5;
     --shadow: rgba(0, 0, 0, 0.35);
     --shadow-deep: rgba(0, 0, 0, 0.5);
-    --focus-ring: rgba(167, 139, 250, 0.24);
+    --focus-ring: rgba(213, 198, 239, 0.36);
+    --focus-outline: #D5C6EF;
     --hero-glow: rgba(124, 58, 237, 0.28);
     --hero-glow-2: rgba(255, 111, 181, 0.18);
 }
@@ -1751,6 +1753,35 @@ footer .foot-emoji {
     font-size: 16px;
 }
 
+.footer-links {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.footer-links a {
+    color: var(--bg);
+    text-decoration: underline;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.footer-links a:hover {
+    color: var(--primary-strong);
+}
+
+@media (max-width: 700px) {
+    footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .footer-links {
+        justify-content: center;
+    }
+}
+
 /* ========================================
    SCROLL REVEAL
    ======================================== */
@@ -2080,4 +2111,166 @@ a.primary-btn {
         aspect-ratio: auto;
         min-height: 210px;
     }
+}
+
+/* ========================================
+   ACCESSIBILITY — SKIP LINK
+   ======================================== */
+
+.skip-link {
+    position: fixed;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 14px 28px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    border-radius: 0 0 14px 14px;
+    text-decoration: none;
+    box-shadow: 0 4px 16px var(--shadow-deep);
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   ACCESSIBILITY — FOCUS STYLES
+   ======================================== */
+
+:focus-visible {
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 3px;
+}
+
+/* ========================================
+   COOKIE CONSENT BANNER
+   ======================================== */
+
+#cookieBanner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 800;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border-strong);
+    box-shadow: 0 -8px 30px var(--shadow-deep);
+    padding: 20px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+#cookieBanner .cookie-text {
+    flex: 1;
+    min-width: 260px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+#cookieBanner .cookie-text a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+#cookieBanner .cookie-text a:hover {
+    color: var(--primary-strong);
+}
+
+#cookieAccept {
+    flex-shrink: 0;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: var(--grad-main);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 16px var(--shadow);
+    transition: transform 0.2s ease;
+}
+
+#cookieAccept:hover {
+    transform: translateY(-2px);
+}
+
+#cookieAccept:focus-visible {
+    outline: 3px solid var(--focus-outline);
+    outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+    #cookieBanner {
+        flex-direction: column;
+        padding: 16px 5%;
+        gap: 12px;
+    }
+    #cookieAccept {
+        width: 100%;
+    }
+}
+
+/* ========================================
+   FORM CONSENT CHECKBOX
+   ======================================== */
+
+.consent-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 18px 0 22px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+}
+
+.consent-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.consent-row label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.consent-row label a {
+    color: var(--primary);
+    text-decoration: underline;
 }
