@@ -51,6 +51,108 @@ function sendJson(res, data, status = 200) {
     res.end(body);
 }
 
+function buildSystemPrompt(expectedLength, contextNote) {
+    return `You are Buddy, a friendly AI study owl that evaluates a school student's answer against the expected answer. You follow Indian NCERT textbook conventions.
+
+Be fair, educational, warm and encouraging.
+
+EVALUATION RULES:
+1. Judge the student's UNDERSTANDING, not exact wording. Different wording is fine if the meaning matches.
+2. Use the expected answer as the main reference for correctness.
+3. Check for correct key terminology — e.g. "photosynthesis" not "making food", "mitochondria" not "energy organ". If the student used the right concept but wrong term, give partial credit and gently note the correct term.
+4. For science questions: if a formula or definition is expected and the student got it right, highlight that as a strength.
+5. For history/geography: check for correct key facts (dates, names, events, places).
+6. Identify which important concepts the student correctly included (correct_points).
+7. Identify which important concepts the student missed (missed_points).
+8. Do not penalize for small grammar or spelling mistakes if the meaning is clear.
+9. Give partial credit for partially correct answers.
+10. Keep feedback appropriate for Indian school students — warm, specific, actionable.
+11. Score from 0 to 100:
+    - 90-100: "Amazing! 🎉 Excellent!" — near-perfect or perfect
+    - 70-89: "Great Job! 👍" — solid understanding, minor gaps
+    - 40-69: "Good Start! 💪" — partial understanding, key concepts missed
+    - 0-39: "No worries, keep practising! 🌱" — needs more work
+12. Give one simple memory trick relevant to this topic — a single sentence with at most one emoji. Use mnemonics if possible (e.g. "Never Eat Shredded Wheat" for compass directions).
+
+EXPECTED LENGTH — judge the answer against this standard:
+${expectedLength}
+${contextNote}
+
+Return ONLY valid JSON in this exact structure:
+{
+    "score": 0,
+    "status": "Excellent!",
+    "feedback": "string",
+    "correct_points": ["string"],
+    "missed_points": ["string"],
+    "memory_trick": "string"}`;
+}
+
+function buildPayload(question, expected, answer, expectedLength, contextNote, schemaEnabled) {
+    const payload = {
+        model: "openai/gpt-oss-20b",
+        messages: [
+            { role: "system", content: buildSystemPrompt(expectedLength, contextNote) },
+            { role: "user", content: `Question:\n${question}\n\nExpected Answer:\n${expected}\n\nStudent Answer:\n${answer}` }
+        ],
+        temperature: 0,
+        max_tokens: 600
+    };
+    if (schemaEnabled) {
+        payload.response_format = {
+            type: "json_schema",
+            json_schema: {
+                name: "answer_evaluation",
+                strict: false,
+                schema: {
+                    type: "object",
+                    properties: {
+                        score: { type: "integer", minimum: 0, maximum: 100 },
+                        status: { type: "string" },
+                        feedback: { type: "string" },
+                        correct_points: { type: "array", items: { type: "string" } },
+                        missed_points: { type: "array", items: { type: "string" } },
+                        memory_trick: { type: "string" }
+                    },
+                    required: ["score", "status", "feedback", "correct_points", "missed_points", "memory_trick"],
+                    additionalProperties: false
+                }
+            }
+        };
+    }
+    return payload;
+}
+
+async function callGroq(apiKey, requestBody) {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+    if (!groqRes.ok) {
+        const err = new Error("Groq API error " + groqRes.status);
+        err.status = groqRes.status;
+        err.detail = await groqRes.text();
+        throw err;
+    }
+    return groqRes.json();
+}
+
+function extractJson(text) {
+    const cleaned = String(text || "").trim()
+        .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    try { return JSON.parse(cleaned); } catch (e) { /* fall through */ }
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+        try { return JSON.parse(cleaned.slice(start, end + 1)); } catch (e) { /* fall through */ }
+    }
+    return null;
+}
+
 export default async function handler(req, res) {
     if (req.method === "OPTIONS") {
         res.writeHead(204, {
@@ -89,100 +191,30 @@ export default async function handler(req, res) {
             chapter: body.chapter
         });
 
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-oss-20b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are Buddy, a friendly AI study owl that evaluates a school student's answer against the expected answer. You follow Indian NCERT textbook conventions.
-
-Be fair, educational, warm and encouraging.
-
-EVALUATION RULES:
-1. Judge the student's UNDERSTANDING, not exact wording. Different wording is fine if the meaning matches.
-2. Use the expected answer as the main reference for correctness.
-3. Check for correct key terminology — e.g. "photosynthesis" not "making food", "mitochondria" not "energy organ". If the student used the right concept but wrong term, give partial credit and gently note the correct term.
-4. For science questions: if a formula or definition is expected and the student got it right, highlight that as a strength.
-5. For history/geography: check for correct key facts (dates, names, events, places).
-6. Identify which important concepts the student correctly included (correct_points).
-7. Identify which important concepts the student missed (missed_points).
-8. Do not penalize for small grammar or spelling mistakes if the meaning is clear.
-9. Give partial credit for partially correct answers.
-10. Keep feedback appropriate for Indian school students — warm, specific, actionable.
-11. Score from 0 to 100:
-    - 90-100: "Amazing! 🎉 Excellent!" — near-perfect or perfect
-    - 70-89: "Great Job! 👍" — solid understanding, minor gaps
-    - 40-69: "Good Start! 💪" — partial understanding, key concepts missed
-    - 0-39: "No worries, keep practising! 🌱" — needs more work
-12. Give one simple memory trick relevant to this topic — a single sentence with at most one emoji. Use mnemonics if possible (e.g. "Never Eat Shredded Wheat" for compass directions).
-
-EXPECTED LENGTH — judge the answer against this standard:
-${expectedLength}
-${contextNote}
-
-Return ONLY valid JSON in this exact structure:
-{
-    "score": 0,
-    "status": "Excellent!",
-    "feedback": "string",
-    "correct_points": ["string"],
-    "missed_points": ["string"],
-    "memory_trick": "string"}`
-                    },
-                    {
-                        role: "user",
-                        content: `Question:\n${question}\n\nExpected Answer:\n${expected}\n\nStudent Answer:\n${answer}`
-                    }
-                ],
-                response_format: {
-                    type: "json_schema",
-                    json_schema: {
-                        name: "answer_evaluation",
-                        strict: true,
-                        schema: {
-                            type: "object",
-                            properties: {
-                                score: { type: "integer", minimum: 0, maximum: 100 },
-                                status: { type: "string" },
-                                feedback: { type: "string" },
-                                correct_points: { type: "array", items: { type: "string" } },
-                                missed_points: { type: "array", items: { type: "string" } },
-                                memory_trick: { type: "string" }
-                            },
-                            required: ["score", "status", "feedback", "correct_points", "missed_points", "memory_trick"],
-                            additionalProperties: false
-                        }
-                    }
+        let data;
+        try {
+            data = await callGroq(apiKey, buildPayload(question, expected, answer, expectedLength, contextNote, true));
+        } catch (e) {
+            // Re-try once without the schema constraint on validation failures.
+            if (e.status === 400 && /json_validate_failed|Failed to (generate|validate) JSON/.test(String(e.detail))) {
+                try {
+                    data = await callGroq(apiKey, buildPayload(question, expected, answer, expectedLength, contextNote, false));
+                } catch (e2) {
+                    throw new Error(`Groq API error ${e2.status}: ${String(e2.detail).slice(0, 200)}`);
                 }
-            })
-        });
-
-        if (!groqRes.ok) {
-            const detail = await groqRes.text();
-            throw new Error(`Groq API error ${groqRes.status}: ${detail.slice(0, 200)}`);
+            } else {
+                throw new Error(`Groq API error ${e.status}: ${String(e.detail).slice(0, 200)}`);
+            }
         }
 
-        const data = await groqRes.json();
         const aiText = data.choices?.[0]?.message?.content;
         if (!aiText) {
             throw new Error("AI returned an empty response.");
         }
 
-        let evaluation;
-        try {
-            evaluation = JSON.parse(aiText);
-        } catch (e) {
-            throw new Error("AI returned invalid JSON.");
-        }
-
-        if (typeof evaluation.score !== "number") {
-            throw new Error("AI returned an invalid score.");
+        const evaluation = extractJson(aiText);
+        if (!evaluation || typeof evaluation.score !== "number") {
+            throw new Error("AI returned an invalid evaluation.");
         }
         evaluation.score = Math.max(0, Math.min(100, Math.round(evaluation.score)));
 

@@ -51,6 +51,92 @@ function sendJson(res, data, status = 200) {
     res.end(body);
 }
 
+function buildSystemPrompt(lengthRule, contextNote) {
+    return `You are Buddy, a friendly AI study owl helping Indian school students (Classes 6-12, CBSE/NCERT curriculum). Generate a correct, concise answer for the given study question.
+
+ANSWER STYLE — follow NCERT textbook conventions:
+- Start with a clear definition or key statement (like NCERT textbooks do).
+- Use the correct subject terminology — e.g. "Newton's Second Law" not just "second law", "photosynthesis" not "making food".
+- For science subjects: state the formula or law first, then explain in simple words.
+- For history/geography: use key terms (dates, names, places) that appear in NCERT textbooks.
+- For maths: show the formula, then the steps.
+- For English/languages: use proper literary terms where relevant.
+
+LENGTH RULES — follow the standard below for how long the answer must be:
+${lengthRule}
+
+FORMAT:
+- Structure as the number of key points required by the LENGTH RULES above, each on its own line starting with "-" (Low standard has no bullet list — just 1-2 short lines).
+- Each point should be one complete concept — not a half-sentence. For High standard, add key terms, definitions, examples, or steps per point.
+- The whole answer should be memorisable in under 30 seconds for Low/Medium.
+- If the question is subjective (essay/long answer type), list the key points a good textbook answer should cover.
+- Use language appropriate for Indian school students.
+${contextNote}
+
+IMPORTANT: Do not add advanced university-level content. Do not use Western textbook conventions — follow Indian NCERT style: definitions first, key terms bold, simple explanations. Accuracy is critical — if unsure, say the most likely correct answer and add a small note.
+
+Return ONLY valid JSON in this exact structure:
+{ "answer": "string" }`;
+}
+
+function buildPayload(question, lengthRule, contextNote, schemaEnabled) {
+    const payload = {
+        model: "openai/gpt-oss-20b",
+        messages: [
+            { role: "system", content: buildSystemPrompt(lengthRule, contextNote) },
+            { role: "user", content: `Question:\n${question}` }
+        ],
+        temperature: 0,
+        max_tokens: 500
+    };
+    if (schemaEnabled) {
+        payload.response_format = {
+            type: "json_schema",
+            json_schema: {
+                name: "generated_answer",
+                strict: false,
+                schema: {
+                    type: "object",
+                    properties: { answer: { type: "string" } },
+                    required: ["answer"],
+                    additionalProperties: false
+                }
+            }
+        };
+    }
+    return payload;
+}
+
+async function callGroq(apiKey, requestBody) {
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestBody)
+    });
+    if (!groqRes.ok) {
+        const err = new Error("Groq API error " + groqRes.status);
+        err.status = groqRes.status;
+        err.detail = await groqRes.text();
+        throw err;
+    }
+    return groqRes.json();
+}
+
+function extractJson(text) {
+    const cleaned = String(text || "").trim()
+        .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    try { return JSON.parse(cleaned); } catch (e) { /* fall through */ }
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+        try { return JSON.parse(cleaned.slice(start, end + 1)); } catch (e) { /* fall through */ }
+    }
+    return null;
+}
+
 export default async function handler(req, res) {
     if (req.method === "OPTIONS") {
         res.writeHead(204, {
@@ -87,83 +173,29 @@ export default async function handler(req, res) {
             chapter: body.chapter
         });
 
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-oss-20b",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are Buddy, a friendly AI study owl helping Indian school students (Classes 6-12, CBSE/NCERT curriculum). Generate a correct, concise answer for the given study question.
-
-ANSWER STYLE — follow NCERT textbook conventions:
-- Start with a clear definition or key statement (like NCERT textbooks do).
-- Use the correct subject terminology — e.g. "Newton's Second Law" not just "second law", "photosynthesis" not "making food".
-- For science subjects: state the formula or law first, then explain in simple words.
-- For history/geography: use key terms (dates, names, places) that appear in NCERT textbooks.
-- For maths: show the formula, then the steps.
-- For English/languages: use proper literary terms where relevant.
-
-LENGTH RULES — follow the standard below for how long the answer must be:
-${lengthRule}
-
-FORMAT:
-- Structure as the number of key points required by the LENGTH RULES above, each on its own line starting with "-" (Low standard has no bullet list — just 1-2 short lines).
-- Each point should be one complete concept — not a half-sentence. For High standard, add key terms, definitions, examples, or steps per point.
-- The whole answer should be memorisable in under 30 seconds for Low/Medium.
-- If the question is subjective (essay/long answer type), list the key points a good textbook answer should cover.
-- Use language appropriate for Indian school students.
-${contextNote}
-
-IMPORTANT: Do not add advanced university-level content. Do not use Western textbook conventions — follow Indian NCERT style: definitions first, key terms bold, simple explanations. Accuracy is critical — if unsure, say the most likely correct answer and add a small note.
-
-Return ONLY valid JSON in this exact structure:
-{ "answer": "string" }`
-                    },
-                    {
-                        role: "user",
-                        content: `Question:\n${question}`
-                    }
-                ],
-                response_format: {
-                    type: "json_schema",
-                    json_schema: {
-                        name: "generated_answer",
-                        strict: true,
-                        schema: {
-                            type: "object",
-                            properties: { answer: { type: "string" } },
-                            required: ["answer"],
-                            additionalProperties: false
-                        }
-                    }
+        let data;
+        try {
+            data = await callGroq(apiKey, buildPayload(question, lengthRule, contextNote, true));
+        } catch (e) {
+            // Re-try once without the schema constraint on validation failures.
+            if (e.status === 400 && /json_validate_failed|Failed to (generate|validate) JSON/.test(String(e.detail))) {
+                try {
+                    data = await callGroq(apiKey, buildPayload(question, lengthRule, contextNote, false));
+                } catch (e2) {
+                    throw new Error(`Groq API error ${e2.status}: ${String(e2.detail).slice(0, 200)}`);
                 }
-            })
-        });
-
-        if (!groqRes.ok) {
-            const detail = await groqRes.text();
-            throw new Error(`Groq API error ${groqRes.status}: ${detail.slice(0, 200)}`);
+            } else {
+                throw new Error(`Groq API error ${e.status}: ${String(e.detail).slice(0, 200)}`);
+            }
         }
 
-        const data = await groqRes.json();
         const aiText = data.choices?.[0]?.message?.content;
         if (!aiText) {
             throw new Error("The AI returned an empty answer.");
         }
 
-        let generated;
-        try {
-            generated = JSON.parse(aiText);
-        } catch (e) {
-            throw new Error("The AI returned invalid JSON.");
-        }
-
-        if (!generated.answer || typeof generated.answer !== "string") {
+        const generated = extractJson(aiText);
+        if (!generated || typeof generated.answer !== "string" || generated.answer.trim() === "") {
             throw new Error("The AI returned an invalid answer.");
         }
 
