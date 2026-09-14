@@ -81,8 +81,8 @@ ${subjectList}
 
 Rules:
 - If the question clearly fits one subject, return that subject's exact name.
-- NCERT science textbooks for Classes 6-10 combine Physics, Chemistry, and Biology into "Science" — use "Science" for general science questions or those that could fit multiple sciences.
-- For Classes 11-12, students take separate Physics, Chemistry, Biology — classify accordingly.
+- Classify science questions into the specific subject whenever possible: Physics, Chemistry, or Biology.
+- Use "Science" only for general questions that do not clearly belong to Physics, Chemistry, or Biology.
 - Mathematics is separate from Science (even if the question involves numbers).
 - Computer Science questions (programming, algorithms, binary, hardware) → "Computer Science".
 - History questions about Indian freedom movement, Mughal empire, ancient civilizations → "History".
