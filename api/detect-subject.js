@@ -74,14 +74,21 @@ export default async function handler(req, res) {
                 messages: [
                     {
                         role: "system",
-                        content: `You are a helpful study assistant that classifies a school student's study question into exactly ONE subject.
+                        content: `You are a helpful study assistant that classifies a school student's study question into exactly ONE subject. The student follows the Indian NCERT/CBSE curriculum (Classes 6-12).
 
 Choose only from this list:
 ${subjectList}
 
 Rules:
 - If the question clearly fits one subject, return that subject's exact name.
-- For general science questions that do not clearly belong to Physics, Chemistry or Biology, use "Science".
+- NCERT science textbooks for Classes 6-10 combine Physics, Chemistry, and Biology into "Science" — use "Science" for general science questions or those that could fit multiple sciences.
+- For Classes 11-12, students take separate Physics, Chemistry, Biology — classify accordingly.
+- Mathematics is separate from Science (even if the question involves numbers).
+- Computer Science questions (programming, algorithms, binary, hardware) → "Computer Science".
+- History questions about Indian freedom movement, Mughal empire, ancient civilizations → "History".
+- Geography questions about Indian geography, climate, monsoon → "Geography".
+- Civics questions about Indian constitution, parliament, fundamental rights → "Civics".
+- Economics questions about Indian economy, GDP, fiscal policy → "Economics".
 - If you are not confident, return "General".
 - Respond with ONLY a single subject name, no punctuation, no extra words.`
                     },
