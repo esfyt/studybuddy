@@ -118,8 +118,12 @@ async function callGroq(apiKey, requestBody) {
 }
 
 function extractJson(text) {
-    const cleaned = String(text || "").trim()
+    let cleaned = String(text || "").trim()
         .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    // Cheap repair for the most common model quirk: a trailing comma before } or ]
+    cleaned = cleaned
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*\]/g, "]");
     try { return JSON.parse(cleaned); } catch (e) { /* fall through */ }
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");

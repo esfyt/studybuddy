@@ -126,8 +126,12 @@ async function callGroq(apiKey, requestBody) {
 }
 
 function extractJson(text) {
-    const cleaned = String(text || "").trim()
+    let cleaned = String(text || "").trim()
         .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    // Cheap repair for the most common model quirk: a trailing comma before } or ]
+    cleaned = cleaned
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*\]/g, "]");
     try { return JSON.parse(cleaned); } catch (e) { /* fall through */ }
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
@@ -195,11 +199,17 @@ export default async function handler(req, res) {
         }
 
         const generated = extractJson(aiText);
-        if (!generated || typeof generated.answer !== "string" || generated.answer.trim() === "") {
-            throw new Error("The AI returned an invalid answer.");
+        // Prefer the JSON answer; but if the model skipped the JSON wrapper,
+        // treat its whole output as the answer (the prompt only asks for JSON).
+        let answer = generated && typeof generated.answer === "string"
+            ? generated.answer.trim()
+            : String(aiText).trim();
+
+        if (answer === "") {
+            throw new Error("The AI returned an empty answer.");
         }
 
-        return sendJson(res, { answer: generated.answer.trim() });
+        return sendJson(res, { answer });
     } catch (error) {
         console.error("Generate API error:", error);
         return sendJson(res, { error: error.message || "Generation failed" }, 502);
