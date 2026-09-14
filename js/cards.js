@@ -16,33 +16,37 @@ function getFormMeta() {
         board: $("cardBoard").value,
         class: $("cardClass").value,
         standard: $("cardStandard").value,
-        subject: subject || "General"
+        subject: subject || "General",
+        chapter: $("cardChapter").value.trim()
     };
 }
 
 // ---------- FILTERS ----------
 
-function renderFilterOptions() {
-    const select = $("filterSubject");
+function fillFilterOptions(select, values, allLabel) {
     if (!select) return;
     const previous = select.value;
-    const subjects = [...new Set(cards.map(c => c.subject))].sort();
+    const list = [...new Set(values.filter(v => v !== "" && v != null))].sort();
 
     select.innerHTML =
-        '<option value="">All Subjects</option>' +
-        subjects
-            .map(s => `<option value="${escapeHTML(s)}">${subjectEmoji(s)} ${escapeHTML(s.replace(/^[\u{1F000}-\u{1FAFF}\s]+/u, ""))}</option>`)
-            .join("");
+        `<option value="">${escapeHTML(allLabel)}</option>` +
+        list.map(v => `<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join("");
 
-    if (subjects.includes(previous)) {
+    if (list.includes(previous)) {
         select.value = previous;
     }
+}
+
+function renderFilterOptions() {
+    fillFilterOptions($("filterSubject"), cards.map(c => c.subject), "All Subjects");
+    fillFilterOptions($("filterChapter"), cards.map(c => c.chapter), "All Chapters");
 }
 
 function clearFilters() {
     $("filterSubject").value = "";
     $("filterBoard").value = "";
     $("filterClass").value = "";
+    $("filterChapter").value = "";
     renderCards();
 }
 
@@ -93,6 +97,7 @@ function renderCards() {
             <div class="saved-card-content">
                 <div class="chip-row">
                     ${subjectChip(card.subject)}
+                    ${card.chapter ? `<span class="chip chip-chapter" title="Chapter">${escapeHTML(card.chapter)}</span>` : ""}
                     <span class="chip">${escapeHTML(card.board)}</span>
                 </div>
                 <h4>${escapeHTML(card.question)}</h4>
@@ -148,6 +153,7 @@ function saveCard() {
 
     $("cardQuestion").value = "";
     $("cardAnswer").value = "";
+    $("cardChapter").value = "";
 
     showToast("Card saved! Great job! 🎴", "success", "🎴");
     playChime("good");
@@ -214,6 +220,7 @@ async function generateAnswer() {
             body: JSON.stringify({
                 question: question,
                 subject: meta.subject,
+                chapter: meta.chapter,
                 board: meta.board,
                 standard: meta.standard,
                 class: meta.class
@@ -287,10 +294,24 @@ function setSubjectDropdown(subjectName) {
     lastAutoSubject = field.value;
 }
 
+let lastAutoChapter = null;
+
+function setChapterDropdown(chapterName) {
+    const field = $("cardChapter");
+    if (!field || !chapterName) return;
+
+    // Don't clobber a chapter the user typed by hand
+    const current = field.value.trim();
+    if (current !== "" && current !== lastAutoChapter) return;
+
+    field.value = chapterName;
+    lastAutoChapter = chapterName;
+}
+
 async function detectSubject(question) {
     if (question.length < 10) return;
 
-    // 1) Server AI first (works on Vercel)
+    // 1) Server AI first (works on Vercel) — detects subject AND chapter
     try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 6000);
@@ -303,16 +324,15 @@ async function detectSubject(question) {
         clearTimeout(timer);
         if (response.ok) {
             const data = await response.json();
-            if (data.subject) {
-                setSubjectDropdown(data.subject);
-                return;
-            }
+            if (data.subject) setSubjectDropdown(data.subject);
+            if (data.chapter) setChapterDropdown(data.chapter);
+            return;
         }
     } catch (e) {
-        // Server unreachable (local dev) — fall through to keyword detection
+        // Server unreachable (local dev) — fall through to keyword detection below
     }
 
-    // 2) Keyword fallback
+    // 2) Keyword fallback (subject only — chapters are too varied for a keyword map)
     setSubjectDropdown(keywordDetect(question));
 }
 
@@ -334,10 +354,23 @@ function initCards() {
     updateActiveNav("cards");
     initScrollReveal();
 
-    ["filterSubject", "filterBoard", "filterClass"].forEach(id => {
+    ["filterSubject", "filterBoard", "filterClass", "filterChapter"].forEach(id => {
         const el = $(id);
         if (el) el.addEventListener("change", renderCards);
     });
+
+    // Populate the chapter autocomplete datalist from chapters already on cards
+    refreshChapterList();
+
+    // A hand-edited chapter is the user's own choice — stop auto-filling over it
+    const ch = $("cardChapter");
+    if (ch) {
+        ch.addEventListener("input", (e) => {
+            if (e.target.value.trim() !== lastAutoChapter) {
+                lastAutoChapter = null;
+            }
+        });
+    }
 
     const q = $("cardQuestion");
     if (q) {
@@ -345,6 +378,13 @@ function initCards() {
             detectSubject(q.value.trim());
         }, 800));
     }
+}
+
+function refreshChapterList() {
+    const datalist = $("chapterList");
+    if (!datalist) return;
+    const chapters = [...new Set(cards.map(c => c.chapter).filter(Boolean))].sort();
+    datalist.innerHTML = chapters.map(c => `<option value="${escapeHTML(c)}"></option>`).join("");
 }
 
 window.init = initCards;

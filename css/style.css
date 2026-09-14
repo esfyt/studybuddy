@@ -507,7 +507,7 @@ textarea:focus {
 
 .form-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 14px;
     margin-bottom: 24px;
 }
@@ -772,6 +772,11 @@ textarea:focus {
     background: var(--subj, var(--primary));
     color: #fff;
     border-color: transparent;
+}
+
+.chip-chapter {
+    background: var(--surface);
+    border-style: dashed;
 }
 
 /* ========================================

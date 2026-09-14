@@ -134,6 +134,7 @@ async function fetchEvaluation(card, studentAnswer) {
             expected: card.expectedAnswer,
             answer: studentAnswer,
             subject: card.subject,
+            chapter: card.chapter || "",
             board: card.board,
             standard: card.standard,
             class: card.class

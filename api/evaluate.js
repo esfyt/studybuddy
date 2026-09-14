@@ -12,6 +12,7 @@ function buildContextNote(context) {
     if (context.class) parts.push(`Class: ${String(context.class).trim().slice(0, 20)}`);
     if (context.standard) parts.push(`Difficulty standard: ${String(context.standard).trim().slice(0, 20)}`);
     if (context.subject) parts.push(`Subject: ${String(context.subject).trim().slice(0, 60)}`);
+    if (context.chapter) parts.push(`Chapter: ${String(context.chapter).trim().slice(0, 60)}`);
     if (parts.length === 0) return "";
     return "\n\nStudent context:\n" + parts.map(p => `- ${p}`).join("\n") +
         "\nMatch your evaluation to this student's class level. For Class 6-8 focus on basic understanding. For Class 9-10 check key terms and definitions. For Class 11-12 expect precise scientific language.";
@@ -73,7 +74,8 @@ export default async function handler(req, res) {
             board: body.board,
             class: body.class,
             standard: body.standard,
-            subject: body.subject
+            subject: body.subject,
+            chapter: body.chapter
         });
 
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {

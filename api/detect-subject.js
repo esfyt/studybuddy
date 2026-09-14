@@ -1,8 +1,9 @@
 // ========================================
-// STUDY BUDDY — AI SUBJECT DETECTION (Vercel serverless)
+// STUDY BUDDY — AI SUBJECT + CHAPTER DETECTION (Vercel serverless)
 // POST /api/detect-subject
 // Body: { question: "string" }
-// Returns: { subject: "Physics" }  (or { subject: "General" } as fallback)
+// Returns: { subject: "Physics", chapter: "Motion" }
+//          (falls back to { subject: "General", chapter: "" })
 // ========================================
 
 const SUBJECTS = [
@@ -74,12 +75,12 @@ export default async function handler(req, res) {
                 messages: [
                     {
                         role: "system",
-                        content: `You are a helpful study assistant that classifies a school student's study question into exactly ONE subject. The student follows the Indian NCERT/CBSE curriculum (Classes 6-12).
+                        content: `You are a helpful study assistant that classifies a school student's study question into exactly ONE subject and the most likely NCERT/CBSE chapter. The student follows the Indian NCERT/CBSE curriculum (Classes 6-12).
 
-Choose only from this list:
+Choose the subject only from this list:
 ${subjectList}
 
-Rules:
+Subject rules:
 - If the question clearly fits one subject, return that subject's exact name.
 - Classify science questions into the specific subject whenever possible: Physics, Chemistry, or Biology.
 - Use "Science" only for general questions that do not clearly belong to Physics, Chemistry, or Biology.
@@ -90,15 +91,39 @@ Rules:
 - Civics questions about Indian constitution, parliament, fundamental rights → "Civics".
 - Economics questions about Indian economy, GDP, fiscal policy → "Economics".
 - If you are not confident, return "General".
-- Respond with ONLY a single subject name, no punctuation, no extra words.`
+
+Chapter rules:
+- Also identify the most likely NCERT/CBSE chapter the question belongs to for that subject (e.g. "Motion", "Acids, Bases and Salts", "The French Revolution", "Polynomials").
+- Use the exact NCERT chapter name when you are confident.
+- If the chapter is unclear or the subject is "General", return an empty string for chapter.
+- Do NOT invent a chapter name — an empty string is better than a wrong guess.
+
+Respond with ONLY valid JSON:
+{ "subject": "...", "chapter": "..." }`
                     },
                     {
                         role: "user",
                         content: `Question: ${question}`
                     }
                 ],
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: "subject_chapter_detection",
+                        strict: true,
+                        schema: {
+                            type: "object",
+                            properties: {
+                                subject: { type: "string" },
+                                chapter: { type: "string" }
+                            },
+                            required: ["subject", "chapter"],
+                            additionalProperties: false
+                        }
+                    }
+                },
                 temperature: 0,
-                max_tokens: 16
+                max_tokens: 60
             })
         });
 
@@ -110,13 +135,25 @@ Rules:
         const data = await groqRes.json();
         const aiText = (data.choices?.[0]?.message?.content || "").trim();
 
+        // Parse JSON, but keep the old substring-match subject validation as a safety net.
+        // A chapter is only trusted when the subject matches a known subject.
         let subject = "General";
-        if (aiText) {
+        let chapter = "";
+        try {
+            const parsed = JSON.parse(aiText);
+            const rawSubject = String(parsed.subject || "").trim();
+            const match = SUBJECTS.find(s => s.toLowerCase() === rawSubject.toLowerCase());
+            if (match) {
+                subject = match;
+                chapter = String(parsed.chapter || "").trim();
+            }
+        } catch (e) {
+            // Fall through to bare subject substring match on the raw text
             const match = SUBJECTS.find(s => aiText.toLowerCase().includes(s.toLowerCase()));
             if (match) subject = match;
         }
 
-        return sendJson(res, { subject });
+        return sendJson(res, { subject, chapter });
     } catch (error) {
         console.error("Detect subject API error:", error);
         return sendJson(res, { error: error.message || "Subject detection failed" }, 502);

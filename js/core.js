@@ -128,6 +128,7 @@ function buildContextNote(context) {
     if (context.class) parts.push(`Class: ${String(context.class).trim().slice(0, 20)}`);
     if (context.standard) parts.push(`Difficulty standard: ${String(context.standard).trim().slice(0, 20)}`);
     if (context.subject) parts.push(`Subject: ${String(context.subject).trim().slice(0, 60)}`);
+    if (context.chapter) parts.push(`Chapter: ${String(context.chapter).trim().slice(0, 60)}`);
     if (parts.length === 0) return "";
     return "\n\nStudent context:\n" + parts.map(p => `- ${p}`).join("\n") +
         "\nMatch the depth and difficulty of your answer to this context.";
@@ -612,6 +613,7 @@ function normalizeCard(card) {
         class: card.class || "",
         standard: card.standard || "Medium",
         subject: card.subject || "General",
+        chapter: card.chapter || "",
         question: card.question || "",
         expectedAnswer: card.expectedAnswer || ""
     };
@@ -629,11 +631,13 @@ function getFilterValues() {
     const subjectEl = $("filterSubject");
     const boardEl = $("filterBoard");
     const classEl = $("filterClass");
+    const chapterEl = $("filterChapter");
     // Filters only exist on the cards page
     return {
         subject: subjectEl ? subjectEl.value : "",
         board: boardEl ? boardEl.value : "",
-        class: classEl ? classEl.value : ""
+        class: classEl ? classEl.value : "",
+        chapter: chapterEl ? chapterEl.value : ""
     };
 }
 
@@ -642,7 +646,8 @@ function getFilteredCards() {
     return cards.filter(card =>
         (!f.subject || card.subject === f.subject) &&
         (!f.board || card.board === f.board) &&
-        (!f.class || String(card.class) === f.class)
+        (!f.class || String(card.class) === f.class) &&
+        (!f.chapter || card.chapter === f.chapter)
     );
 }
 
