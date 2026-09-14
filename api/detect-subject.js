@@ -93,10 +93,15 @@ Subject rules:
 - If you are not confident, return "General".
 
 Chapter rules:
-- Also identify the most likely NCERT/CBSE chapter the question belongs to for that subject (e.g. "Motion", "Acids, Bases and Salts", "The French Revolution", "Polynomials").
-- Use the exact NCERT chapter name when you are confident.
-- If the chapter is unclear or the subject is "General", return an empty string for chapter.
-- Do NOT invent a chapter name — an empty string is better than a wrong guess.
+- Also identify the most likely NCERT/CBSE chapter the question belongs to for that subject (e.g. "Motion", "Acids, Bases and Salts", "The French Revolution", "Polynomials"). Use the exact NCERT chapter name when you are confident.
+- If you cannot match an exact NCERT chapter, return the closest topic name a textbook would use for that question (e.g. a force-and-motion question → "Motion"). Prefer a useful best guess over an empty string.
+- Only return an empty string for chapter when the subject is "General" or the question truly has no school topic.
+
+Examples (question → subject, chapter):
+- "What is Newton's second law of motion?" → "Physics", "Force and Laws of Motion"
+- "Explain photosynthesis in plants" → "Biology", "Life Processes"
+- "Solve x2 - 5x + 6 = 0" → "Mathematics", "Quadratic Equations"
+- "Why did the French Revolution happen?" → "History", "The French Revolution"
 
 Respond with ONLY valid JSON:
 { "subject": "...", "chapter": "..." }`
@@ -123,7 +128,7 @@ Respond with ONLY valid JSON:
                     }
                 },
                 temperature: 0,
-                max_tokens: 60
+                max_tokens: 100
             })
         });
 

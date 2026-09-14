@@ -324,12 +324,19 @@ async function detectSubject(question) {
         clearTimeout(timer);
         if (response.ok) {
             const data = await response.json();
-            if (data.subject) setSubjectDropdown(data.subject);
+            // If the AI couldn't name the subject, still try keyword detection
+            // so the user gets some feedback instead of nothing.
+            const subject = (data.subject && data.subject !== "General")
+                ? data.subject
+                : keywordDetect(question);
+            setSubjectDropdown(subject);
             if (data.chapter) setChapterDropdown(data.chapter);
             return;
         }
+        console.warn("Subject detection: server returned", response.status);
     } catch (e) {
         // Server unreachable (local dev) — fall through to keyword detection below
+        console.warn("Subject detection: server unreachable, using keywords", e);
     }
 
     // 2) Keyword fallback (subject only — chapters are too varied for a keyword map)
@@ -368,6 +375,16 @@ function initCards() {
         ch.addEventListener("input", (e) => {
             if (e.target.value.trim() !== lastAutoChapter) {
                 lastAutoChapter = null;
+            }
+        });
+    }
+
+    // Same for the subject — a manual edit overrides the AI until cleared
+    const sj = $("cardSubject");
+    if (sj) {
+        sj.addEventListener("input", (e) => {
+            if (e.target.value.trim() !== lastAutoSubject) {
+                lastAutoSubject = null;
             }
         });
     }

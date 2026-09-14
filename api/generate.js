@@ -18,6 +18,16 @@ function buildContextNote(context) {
         "\nMatch the depth and difficulty of your answer to this student's class level. For Class 6-8 keep it simple; for Class 9-10 include key terms and definitions; for Class 11-12 use precise scientific/academic language.";
 }
 
+export function buildLengthRule(standard) {
+    const s = String(standard || "").trim().toLowerCase();
+    if (s === "low")
+        return "LOW standard: keep the answer to 1-2 short lines — a clear definition or one key point. No bullet list.";
+    if (s === "high")
+        return "HIGH standard: give 8-10 detailed key points, each a full concept with key terms, examples or steps, each on its own line starting with '-'.";
+    // default Medium
+    return "MEDIUM standard: give 4-5 clear key points, each on its own line starting with '-'.";
+}
+
 function readBody(req) {
     return new Promise((resolve, reject) => {
         let data = "";
@@ -68,6 +78,7 @@ export default async function handler(req, res) {
             return sendJson(res, { error: "GROQ_API_KEY is not set on the server" }, 500);
         }
 
+        const lengthRule = buildLengthRule(body.standard);
         const contextNote = buildContextNote({
             board: body.board,
             class: body.class,
@@ -97,10 +108,13 @@ ANSWER STYLE — follow NCERT textbook conventions:
 - For maths: show the formula, then the steps.
 - For English/languages: use proper literary terms where relevant.
 
+LENGTH RULES — follow the standard below for how long the answer must be:
+${lengthRule}
+
 FORMAT:
-- Structure as 3 to 5 clear key points, each on its own line starting with "-".
-- Each point should be one complete concept — not a half-sentence.
-- The whole answer should be memorisable in under 30 seconds.
+- Structure as the number of key points required by the LENGTH RULES above, each on its own line starting with "-" (Low standard has no bullet list — just 1-2 short lines).
+- Each point should be one complete concept — not a half-sentence. For High standard, add key terms, definitions, examples, or steps per point.
+- The whole answer should be memorisable in under 30 seconds for Low/Medium.
 - If the question is subjective (essay/long answer type), list the key points a good textbook answer should cover.
 - Use language appropriate for Indian school students.
 ${contextNote}

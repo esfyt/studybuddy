@@ -18,6 +18,16 @@ function buildContextNote(context) {
         "\nMatch your evaluation to this student's class level. For Class 6-8 focus on basic understanding. For Class 9-10 check key terms and definitions. For Class 11-12 expect precise scientific language.";
 }
 
+export function buildLengthRule(standard) {
+    const s = String(standard || "").trim().toLowerCase();
+    if (s === "low")
+        return "LOW standard: the answer was expected to be 1-2 short lines — a definition or one key point. A short, correct answer should score just as high as a longer one.";
+    if (s === "high")
+        return "HIGH standard: the answer was expected to be 8-10 detailed lines/points with key terms, definitions and examples. Expect depth, but only gently penalize brevity if the key concepts are all present.";
+    // default Medium
+    return "MEDIUM standard: the answer was expected to be 4-5 clear key points/bullets.";
+}
+
 function readBody(req) {
     return new Promise((resolve, reject) => {
         let data = "";
@@ -70,6 +80,7 @@ export default async function handler(req, res) {
             return sendJson(res, { error: "GROQ_API_KEY is not set on the server" }, 500);
         }
 
+        const expectedLength = buildLengthRule(body.standard);
         const contextNote = buildContextNote({
             board: body.board,
             class: body.class,
@@ -110,6 +121,9 @@ EVALUATION RULES:
     - 40-69: "Good Start! 💪" — partial understanding, key concepts missed
     - 0-39: "No worries, keep practising! 🌱" — needs more work
 12. Give one simple memory trick relevant to this topic — a single sentence with at most one emoji. Use mnemonics if possible (e.g. "Never Eat Shredded Wheat" for compass directions).
+
+EXPECTED LENGTH — judge the answer against this standard:
+${expectedLength}
 ${contextNote}
 
 Return ONLY valid JSON in this exact structure:
