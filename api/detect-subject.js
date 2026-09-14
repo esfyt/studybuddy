@@ -53,6 +53,18 @@ Subject rules:
 - Economics questions about Indian economy, GDP, fiscal policy → "Economics".
 - If you are not confident, return "General".
 
+Topic → subject quick reference (stronger than the wording of the question):
+- motion, force, energy, electricity, light, machines, gravity, momentum → "Physics"
+- atoms, reactions, acids, bases, bonds, elements, chemicals, compounds → "Chemistry"
+- plants, cells, body, blood, heart, organs, animals, ecosystems, reproduction → "Biology"
+- equations, algebra, geometry, angles, area, theorems, fractions, percentages → "Mathematics"
+- grammar, nouns, verbs, tenses, essay, poem, novel, story, writing, comprehension → "English"
+- wars, empires, dynasties, revolutions, freedom movement, ancient history → "History"
+- rivers, mountains, climate, monsoon, maps, countries, capitals, landforms → "Geography"
+- constitution, parliament, democracy, rights, government, elections, judiciary → "Civics"
+- inflation, GDP, money, banking, trade, markets, taxes, budget, economy → "Economics"
+- programming, code, algorithms, hackers, binary, computers, operating systems → "Computer Science"
+
 Chapter rules:
 - Also identify the most likely NCERT/CBSE chapter the question belongs to for that subject (e.g. "Motion", "Acids, Bases and Salts", "The French Revolution", "Polynomials"). Use the exact NCERT chapter name when you are confident.
 - If you cannot match an exact NCERT chapter, return the closest topic name a textbook would use for that question (e.g. a force-and-motion question → "Motion"). Prefer a useful best guess over an empty string.
