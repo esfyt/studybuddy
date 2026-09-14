@@ -87,7 +87,7 @@ function buildPayload(question, lengthRule, contextNote, schemaEnabled) {
             { role: "user", content: `Question:\n${question}` }
         ],
         temperature: 0,
-        max_tokens: 500
+        max_tokens: 1000
     };
     if (schemaEnabled) {
         payload.response_format = {
@@ -199,11 +199,21 @@ export default async function handler(req, res) {
         }
 
         const generated = extractJson(aiText);
-        // Prefer the JSON answer; but if the model skipped the JSON wrapper,
-        // treat its whole output as the answer (the prompt only asks for JSON).
+        // Prefer the JSON answer field. But a parsed JSON object can still carry
+        // an empty string, and the model sometimes skips the JSON wrapper
+        // entirely — so only trust the field when it has real content, and
+        // otherwise salvage the model's raw output.
         let answer = generated && typeof generated.answer === "string"
             ? generated.answer.trim()
-            : String(aiText).trim();
+            : "";
+        if (!answer) {
+            answer = String(aiText).trim()
+                .replace(/^```(?:json)?\s*/i, "")   // leftover code fences
+                .replace(/\s*```$/, "");
+            // Unwrap a JSON envelope that half-parsed into an empty field
+            const envelope = answer.match(/^\{\s*"answer"\s*:\s*"([\s\S]*)"\s*\}$/);
+            if (envelope) answer = envelope[1];
+        }
 
         if (answer === "") {
             throw new Error("The AI returned an empty answer.");
